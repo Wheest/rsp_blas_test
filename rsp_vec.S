@@ -1,40 +1,3 @@
-#include <rsp_queue.inc>
-
-#define SLOT_SIZE 0x20
-#define NUM_SLOTS 0x20
-
-    .set noreorder
-    .set at
-
-    .data
-
-RSPQ_BeginOverlayHeader
-    RSPQ_DefineCommand VecCmd_Load,         8
-    RSPQ_DefineCommand VecCmd_Store,        8
-    RSPQ_DefineCommand mulMat4Mat4,        12
-RSPQ_EndOverlayHeader
-
-RSPQ_BeginSavedState
-    .align 4
-VEC_SLOTS: .ds.b NUM_SLOTS * SLOT_SIZE
-RSPQ_EndSavedState
-
-    .text
-
-VecCmd_Load:
-    j Vec_DMA
-    li t2, DMA_IN
-
-VecCmd_Store:
-    li t2, DMA_OUT
-
-Vec_DMA:
-     andi s4, a1, 0xFFF0
-     addiu s4, %lo(VEC_SLOTS)
-     srl t0, a1, 16
-     j DMAExec
-     move s0, a0
-
 ## Auto-generated file, transpiled with RSPL
 #include <rsp_queue.inc>
 #include <rdpq_macros.h>
@@ -111,6 +74,13 @@ Vec_DMA:
 #define vcc 1
 #define vce 2
 
+.data
+  RSPQ_BeginOverlayHeader
+    RSPQ_DefineCommand mulMat4Mat4, 12
+  RSPQ_EndOverlayHeader
+
+  RSPQ_EmptySavedState
+
 .text
 
 mulMat4Mat4:
@@ -170,7 +140,6 @@ mulMat4Mat4:
   vmadm $v29, $v21, $v18.h3
   vmadn $v18, $v22, $v17.h3
   vmadh $v17, $v21, $v17.h3
-  sdv $v19, 0, 0, $a0
   sdv $v20, 0, 8, $a0
   sdv $v19, 8, 16, $a0
   sdv $v20, 8, 24, $a0
@@ -179,7 +148,7 @@ mulMat4Mat4:
   sdv $v17, 8, 48, $a0
   sdv $v18, 8, 56, $a0
   j RSPQ_Loop
-  nop
+  sdv $v19, 0, 0, $a0
 
 #define zero $0
 #define v0 $2

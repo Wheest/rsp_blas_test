@@ -31,72 +31,16 @@
 #include <stdint.h>
 
 enum {
-  VEC_CMD_LOAD = 0x0,
-  VEC_CMD_STORE = 0x1,
-  VEC_CMD_TRANS = 0x2,
-  MULMAT4MAT4 = 0x3,
+  /* VEC_CMD_LOAD = 0x0, */
+  /* VEC_CMD_STORE = 0x1, */
+  /* VEC_CMD_TRANS = 0x2, */
+  MULMAT4MAT4 = 0x0,
 };
 
 typedef int32_t mat4x4[4][4] __attribute__((aligned(16)));
 
-typedef struct {
-  int16_t i[8];
-  uint16_t f[8];
-} __attribute__((aligned(16))) vec_slot_t;
-
-typedef struct {
-  vec_slot_t c[2];
-} __attribute__((aligned(16))) vec_mtx_t;
-
-typedef struct {
-  int16_t i[16];
-} __attribute__((aligned(16))) vec_i16;
-
 void vec_init();
 void vec_close();
-
-static inline void vec_load(uint32_t slot, vec_slot_t *src, uint32_t num) {
-  extern uint32_t vec_id;
-  rspq_write(vec_id, VEC_CMD_LOAD, PhysicalAddr(src) & 0xFFFFFF,
-             (((num * sizeof(vec_slot_t) - 1) & 0xFFF) << 16) |
-                 ((slot * sizeof(vec_slot_t)) & 0xFF0));
-}
-
-static inline void vec_store(vec_slot_t *dest, uint32_t slot, uint32_t num) {
-  extern uint32_t vec_id;
-  rspq_write(vec_id, VEC_CMD_STORE, PhysicalAddr(dest) & 0xFFFFFF,
-             (((num * sizeof(vec_slot_t) - 1) & 0xFFF) << 16) |
-                 ((slot * sizeof(vec_slot_t)) & 0xFF0));
-}
-
-static inline void vec_transform(uint32_t dest, uint32_t mtx, uint32_t vec) {
-  extern uint32_t vec_id;
-  rspq_write(vec_id, VEC_CMD_TRANS, (dest * sizeof(vec_slot_t)) & 0xFF0,
-             (((mtx * sizeof(vec_slot_t)) & 0xFF0) << 16) |
-                 ((vec * sizeof(vec_slot_t)) & 0xFF0));
-}
-
-static inline void vec_i16_load(vec_i16 *src, uint32_t slot, uint32_t num) {
-  extern uint32_t vec_id;
-  rspq_write(vec_id, VEC_CMD_LOAD, PhysicalAddr(src) & 0xFFFFFF,
-             (((num * sizeof(vec_i16) - 1) & 0xFFF) << 16) |
-                 ((slot * sizeof(vec_i16)) & 0xFF0));
-}
-
-static inline void vec_i16_store(vec_i16 *dest, uint32_t slot, uint32_t num) {
-  extern uint32_t vec_id;
-  rspq_write(vec_id, VEC_CMD_STORE, PhysicalAddr(dest) & 0xFFFFFF,
-             (((num * sizeof(vec_i16) - 1) & 0xFFF) << 16) |
-                 ((slot * sizeof(vec_i16)) & 0xFF0));
-}
-
-static inline void vec_i16_transform(uint32_t dest, uint32_t mtx,
-                                     uint32_t vec) {
-  extern uint32_t vec_id;
-  rspq_write(vec_id, VEC_CMD_TRANS, (dest * sizeof(vec_i16)) & 0xFF0,
-             (((mtx * sizeof(vec_i16)) & 0xFF0) << 16) |
-                 ((vec * sizeof(vec_i16)) & 0xFF0));
-}
 
 static inline void vec_i32_4x4_matmul(uint32_t dest, uint32_t matL,
                                       uint32_t matR) {
@@ -107,9 +51,4 @@ static inline void vec_i32_4x4_matmul(uint32_t dest, uint32_t matL,
              (((matL * sizeof(mat4x4)) & 0xFF0) << 16) |
                  ((matR * sizeof(mat4x4)) & 0xFF0));
 }
-void floats_to_vectors(vec_slot_t *dest, const float *source,
-                       uint32_t source_length);
-void vectors_to_floats(float *dest, const vec_slot_t *source,
-                       uint32_t dest_length);
-
 #endif

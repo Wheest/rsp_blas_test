@@ -1,0 +1,40 @@
+include "rsp_queue.inc"
+include "rdpq_macros.h"
+
+/**
+ * Multiplies two matrices in memory.
+ *
+ * @param addrOut destination pointer
+ * @param addrMatL pointer to left matrix
+ * @param addrMatR pointer to right matrix
+ */
+command<0> mulMat4Mat4(u32 addrOut, u32 addrMatL, u32 addrMatR)
+{
+  vec32 matL0 = load(addrMatL, 0x00).xyzwxyzw;
+  vec32 matL1 = load(addrMatL, 0x10).xyzwxyzw;
+  vec32 matL2 = load(addrMatL, 0x20).xyzwxyzw;
+  vec32 matL3 = load(addrMatL, 0x30).xyzwxyzw;
+
+  vec32 matR01, matR23;
+
+  matR01.xyzw = load(addrMatR, 0x00).xyzw;
+  matR01.XYZW = load(addrMatR, 0x10).xyzw;
+  matR23.xyzw = load(addrMatR, 0x20).xyzw;
+  matR23.XYZW = load(addrMatR, 0x30).xyzw;
+
+  vec32 tmp;
+  tmp    = matL0  * matR01.xxxxXXXX;
+  tmp    = matL1 +* matR01.yyyyYYYY;
+  tmp    = matL2 +* matR01.zzzzZZZZ;
+  matR01 = matL3 +* matR01.wwwwWWWW;
+
+  tmp    = matL0  * matR23.xxxxXXXX;
+  tmp    = matL1 +* matR23.yyyyYYYY;
+  tmp    = matL2 +* matR23.zzzzZZZZ;
+  matR23 = matL3 +* matR23.wwwwWWWW;
+
+  store(matR01.xyzw, addrOut, 0x00);
+  store(matR01.XYZW, addrOut, 0x10);
+  store(matR23.xyzw, addrOut, 0x20);
+  store(matR23.XYZW, addrOut, 0x30);
+}
