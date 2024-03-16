@@ -11,8 +11,7 @@
 RSPQ_BeginOverlayHeader
     RSPQ_DefineCommand VecCmd_Load,         8
     RSPQ_DefineCommand VecCmd_Store,        8
-    RSPQ_DefineCommand VecCmd_Transform,    8
-    RSPQ_DefineCommand mulMat4Mat4,    8
+    RSPQ_DefineCommand mulMat4Mat4,        12
 RSPQ_EndOverlayHeader
 
 RSPQ_BeginSavedState
@@ -30,106 +29,11 @@ VecCmd_Store:
     li t2, DMA_OUT
 
 Vec_DMA:
-    andi s4, a1, 0xFFF0
-    addiu s4, %lo(VEC_SLOTS)
-    srl t0, a1, 16
-    j DMAExec
-    move s0, a0
-
-VecCmd_Transform:
-    #define trans_mtx t0
-    #define trans_vec t1
-    #define trans_out t2
-    #define m0i $v01
-    #define m0f $v02
-    #define m1i $v03
-    #define m1f $v04
-    #define m2i $v05
-    #define m2f $v06
-    #define m3i $v07
-    #define m3f $v08
-    #define v01i $v09
-    #define v01f $v10
-    #define o01i $v13
-    #define o01f $v14
-    #define vtemp $v17
-
-    srl trans_mtx, a1, 16
-    andi trans_mtx, 0xFF0
-    andi trans_vec, a1, 0xFF0
-    andi trans_out, a0, 0xFF0
-
-    addiu trans_mtx, %lo(VEC_SLOTS)
-    addiu trans_vec, %lo(VEC_SLOTS)
-    addiu trans_out, %lo(VEC_SLOTS)
-
-    # Load matrix columns, repeating each column twice in a register
-    ldv m0i,0x0,  0x00,trans_mtx
-    ldv m0i,0x8,  0x00,trans_mtx
-    ldv m0f,0x0,  0x10,trans_mtx
-    ldv m0f,0x8,  0x10,trans_mtx
-    ldv m1i,0x0,  0x08,trans_mtx
-    ldv m1i,0x8,  0x08,trans_mtx
-    ldv m1f,0x0,  0x18,trans_mtx
-    ldv m1f,0x8,  0x18,trans_mtx
-    ldv m2i,0x0,  0x20,trans_mtx
-    ldv m2i,0x8,  0x20,trans_mtx
-    ldv m2f,0x0,  0x30,trans_mtx
-    ldv m2f,0x8,  0x30,trans_mtx
-    ldv m3i,0x0,  0x28,trans_mtx
-    ldv m3i,0x8,  0x28,trans_mtx
-    ldv m3f,0x0,  0x38,trans_mtx
-    ldv m3f,0x8,  0x38,trans_mtx
-
-    # Load vector (a slot always contains two vectors)
-    lqv v01i,0x0,  0x00,trans_vec
-    lqv v01f,0x0,  0x10,trans_vec
-
-    # Perform transformation by computing the dot products of the matrix rows with the vector.
-    # We take advantage of the accumulator by letting it perform the addition automatically
-    # with each multiplication.
-
-    vmudl vtemp, m0f, v01f,e(0h) #   m(x,0) * v(0)
-    vmadm vtemp, m0i, v01f,e(0h)
-    vmadn vtemp, m0f, v01i,e(0h)
-    vmadh vtemp, m0i, v01i,e(0h)
-
-    vmadl vtemp, m1f, v01f,e(1h) # + m(x,1) * v(1)
-    vmadm vtemp, m1i, v01f,e(1h)
-    vmadn vtemp, m1f, v01i,e(1h)
-    vmadh vtemp, m1i, v01i,e(1h)
-
-    vmadl vtemp, m2f, v01f,e(2h) # + m(x,2) * v(2)
-    vmadm vtemp, m2i, v01f,e(2h)
-    vmadn vtemp, m2f, v01i,e(2h)
-    vmadh vtemp, m2i, v01i,e(2h)
-
-    vmadl vtemp, m3f, v01f,e(3h) # + m(x,3) * v(3)
-    vmadm vtemp, m3i, v01f,e(3h)
-    vmadn o01f,  m3f, v01i,e(3h)
-    vmadh o01i,  m3i, v01i,e(3h)
-
-    # Write result
-    sqv o01i,0x0,  0x00,trans_out
-    jr ra
-    sqv o01f,0x0,  0x10,trans_out
-
-    #undef trans_mtx
-    #undef trans_vec
-    #undef trans_out
-    #undef m0i
-    #undef m0f
-    #undef m1i
-    #undef m1f
-    #undef m2i
-    #undef m2f
-    #undef m3i
-    #undef m3f
-    #undef v01i
-    #undef v01f
-    #undef o01i
-    #undef o01f
-    #undef vtemp
+     andi s4, a1, 0xFFF0
+     addiu s4, %lo(VEC_SLOTS)
+     srl t0, a1, 16
+     j DMAExec
+     move s0, a0
 
 ## Auto-generated file, transpiled with RSPL
 #include <rsp_queue.inc>
@@ -210,71 +114,71 @@ VecCmd_Transform:
 .text
 
 mulMat4Mat4:
-  ldv $v01, 0, 0, $s3
-  ldv $v01, 8, 0, $s3
-  ldv $v02, 0, 8, $s3
-  ldv $v02, 8, 8, $s3
-  ldv $v03, 0, 16, $s3
-  ldv $v03, 8, 16, $s3
-  ldv $v04, 0, 24, $s3
-  ldv $v04, 8, 24, $s3
-  ldv $v05, 0, 32, $s3
-  ldv $v05, 8, 32, $s3
-  ldv $v06, 0, 40, $s3
-  ldv $v06, 8, 40, $s3
-  ldv $v07, 0, 48, $s3
-  ldv $v07, 8, 48, $s3
-  ldv $v08, 0, 56, $s3
-  ldv $v08, 8, 56, $s3
-  ldv $v09, 0, 0, $s4
-  ldv $v10, 0, 8, $s4
-  ldv $v09, 8, 16, $s4
-  ldv $v10, 8, 24, $s4
-  ldv $v11, 0, 32, $s4
-  ldv $v12, 0, 40, $s4
-  ldv $v11, 8, 48, $s4
-  ldv $v12, 8, 56, $s4
-  vmudl $v29, $v02, $v10.h0
-  vmadm $v29, $v01, $v10.h0
-  vmadn $v14, $v02, $v09.h0
-  vmadh $v13, $v01, $v09.h0
-  vmadl $v29, $v04, $v10.h1
-  vmadm $v29, $v03, $v10.h1
-  vmadn $v14, $v04, $v09.h1
-  vmadh $v13, $v03, $v09.h1
-  vmadl $v29, $v06, $v10.h2
-  vmadm $v29, $v05, $v10.h2
-  vmadn $v14, $v06, $v09.h2
-  vmadh $v13, $v05, $v09.h2
-  vmadl $v29, $v08, $v10.h3
-  vmadm $v29, $v07, $v10.h3
-  vmadn $v10, $v08, $v09.h3
-  vmadh $v09, $v07, $v09.h3
-  vmudl $v29, $v02, $v12.h0
-  vmadm $v29, $v01, $v12.h0
-  vmadn $v14, $v02, $v11.h0
-  vmadh $v13, $v01, $v11.h0
-  vmadl $v29, $v04, $v12.h1
-  vmadm $v29, $v03, $v12.h1
-  vmadn $v14, $v04, $v11.h1
-  vmadh $v13, $v03, $v11.h1
-  vmadl $v29, $v06, $v12.h2
-  vmadm $v29, $v05, $v12.h2
-  vmadn $v14, $v06, $v11.h2
-  vmadh $v13, $v05, $v11.h2
-  vmadl $v29, $v08, $v12.h3
-  vmadm $v29, $v07, $v12.h3
-  vmadn $v12, $v08, $v11.h3
-  vmadh $v11, $v07, $v11.h3
-  sdv $v09, 0, 0, $s2
-  sdv $v10, 0, 8, $s2
-  sdv $v09, 8, 16, $s2
-  sdv $v10, 8, 24, $s2
-  sdv $v11, 0, 32, $s2
-  sdv $v12, 0, 40, $s2
-  sdv $v11, 8, 48, $s2
-  sdv $v12, 8, 56, $s2
-  jr $ra
+  ldv $v27, 0, 0, $a1
+  ldv $v27, 8, 0, $a1
+  ldv $v28, 0, 8, $a1
+  ldv $v28, 8, 8, $a1
+  ldv $v25, 0, 16, $a1
+  ldv $v25, 8, 16, $a1
+  ldv $v26, 0, 24, $a1
+  ldv $v26, 8, 24, $a1
+  ldv $v23, 0, 32, $a1
+  ldv $v23, 8, 32, $a1
+  ldv $v24, 0, 40, $a1
+  ldv $v24, 8, 40, $a1
+  ldv $v21, 0, 48, $a1
+  ldv $v21, 8, 48, $a1
+  ldv $v22, 0, 56, $a1
+  ldv $v22, 8, 56, $a1
+  ldv $v19, 0, 0, $a2
+  ldv $v20, 0, 8, $a2
+  ldv $v19, 8, 16, $a2
+  ldv $v20, 8, 24, $a2
+  ldv $v17, 0, 32, $a2
+  ldv $v18, 0, 40, $a2
+  ldv $v17, 8, 48, $a2
+  ldv $v18, 8, 56, $a2
+  vmudl $v29, $v28, $v20.h0
+  vmadm $v29, $v27, $v20.h0
+  vmadn $v16, $v28, $v19.h0
+  vmadh $v15, $v27, $v19.h0
+  vmadl $v29, $v26, $v20.h1
+  vmadm $v29, $v25, $v20.h1
+  vmadn $v16, $v26, $v19.h1
+  vmadh $v15, $v25, $v19.h1
+  vmadl $v29, $v24, $v20.h2
+  vmadm $v29, $v23, $v20.h2
+  vmadn $v16, $v24, $v19.h2
+  vmadh $v15, $v23, $v19.h2
+  vmadl $v29, $v22, $v20.h3
+  vmadm $v29, $v21, $v20.h3
+  vmadn $v20, $v22, $v19.h3
+  vmadh $v19, $v21, $v19.h3
+  vmudl $v29, $v28, $v18.h0
+  vmadm $v29, $v27, $v18.h0
+  vmadn $v16, $v28, $v17.h0
+  vmadh $v15, $v27, $v17.h0
+  vmadl $v29, $v26, $v18.h1
+  vmadm $v29, $v25, $v18.h1
+  vmadn $v16, $v26, $v17.h1
+  vmadh $v15, $v25, $v17.h1
+  vmadl $v29, $v24, $v18.h2
+  vmadm $v29, $v23, $v18.h2
+  vmadn $v16, $v24, $v17.h2
+  vmadh $v15, $v23, $v17.h2
+  vmadl $v29, $v22, $v18.h3
+  vmadm $v29, $v21, $v18.h3
+  vmadn $v18, $v22, $v17.h3
+  vmadh $v17, $v21, $v17.h3
+  sdv $v19, 0, 0, $a0
+  sdv $v20, 0, 8, $a0
+  sdv $v19, 8, 16, $a0
+  sdv $v20, 8, 24, $a0
+  sdv $v17, 0, 32, $a0
+  sdv $v18, 0, 40, $a0
+  sdv $v17, 8, 48, $a0
+  sdv $v18, 8, 56, $a0
+  j RSPQ_Loop
   nop
 
 #define zero $0

@@ -2,27 +2,15 @@
 #include <stdio.h>
 
 #include "vec.h"
-
+#define RSPQ_DEBUG 1
+#define RSPQ_PROFILE 1
 #define NUM_VECTOR_SLOTS 16
 #define NUM_INT16_VECTORS                                                      \
   4 // We need 4 vectors to store 32 integers (vec_i16 is an array of 8 int16_t)
 
-vec_i16 *input_vectors;
-vec_i16 *output_vectors;
-
 #define NUM_MATRICES 2 // Assuming you want to multiply two 4x4 matrices
 mat4x4 *input_matrices;
 mat4x4 *output_matrix;
-
-void print_int16_vectors(const vec_i16 *vectors, uint32_t count) {
-  for (uint32_t j = 0; j < count; j++) {
-    for (int i = 0; i < 16; i++) {
-      printf("%d ", vectors[j].i[i]);
-    }
-    printf("\n");
-  }
-  printf("\n");
-}
 
 void print_matrix(const mat4x4 matrix) {
   for (int i = 0; i < 4; i++) {
@@ -42,7 +30,9 @@ int main() {
   debug_init_usblog();
 
   // Initialize the "vec" library (see vec.h)
+  printf("Vec init\n");
   vec_init();
+  printf("Vec init'd\n");
 
   // Allocate memory for DMA transfers
   /* input_vectors = */
@@ -86,7 +76,7 @@ int main() {
   printf("loaded data\n");
 
   // Perform matrix multiplication
-  vec_i32_4x4_matmul((uint32_t)&output_matrix, (uint32_t)&input_matrices[0],
+  vec_i32_4x4_matmul((uint32_t)output_matrix, (uint32_t)&input_matrices[0],
                      (uint32_t)&input_matrices[1]);
   rspq_wait();
   // Load the vectors back from the RSP memory
